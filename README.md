@@ -6,6 +6,61 @@
 
 ![架构总览](docs/architecture.svg)
 
+## 环境准备（3 步）
+
+### 1. 系统要求
+
+| 项目 | 版本要求 | 用途 | 缺失后果 |
+|---|---|---|---|
+| Python | >= 3.10 | 全部脚本 | 无法运行 |
+| ffmpeg | 任意近期版本 | 抽帧 / mp4 转码 | 抽帧与成片失败 |
+| Godot | 4.2+（可选） | 复刻工程冒烟 + Movie Maker 渲染 mp4 | 只能出代码与报告，不能验证运行 |
+
+### 2. 安装依赖
+
+```bash
+python -m venv .venv
+# Linux/macOS: source .venv/bin/activate
+# Windows:     .venv\Scripts\activate
+
+pip install -r requirements.txt          # 核心依赖
+pip install -r requirements-asr.txt      # 可选：本地语音转写（建议独立虚拟环境）
+```
+
+> 依赖刻意做薄：管线主体只用标准库 + 一两个轻量包；`faster-whisper` 会拖入
+> ctranslate2 等重依赖，因此单独放 `requirements-asr.txt`，装到独立 venv 后用
+> `ECHONOTES_ASR_PYTHON` 指过去，避免与主线环境互相污染。
+
+### 3. 自检（**跑管线前先跑它**）
+
+```bash
+python scripts/check_env.py
+```
+
+逐项打印 `[ OK ] / [WARN] / [FAIL]`，缺什么、去哪装、装完怎么验证一次说清；
+有必需项缺失时退出码为 1。`--ci` 只校验 Python 与 pip 依赖（给 CI 用）。
+
+### 密钥
+
+复制 `.env.example` 为 `.env` 后填写（`.env` 已被 `.gitignore` 拦截，永不入库）。
+每个 Key 用在哪、为什么选这个模型、去哪申请，见 [docs/API_SETUP.md](docs/API_SETUP.md)。
+Ech_practice 的必需 Key：**SILICONFLOW_API_KEY**。
+
+### 常见故障速查
+
+| 症状 | 原因 | 解决 |
+|---|---|---|
+| godot --headless --write-movie 崩溃 | headless 走 dummy 渲染器，Movie Maker 不支持 | 必须用窗口模式渲染，这是已知硬限制 |
+| 抽帧结果为空 | ffmpeg 缺失或视频源受限 | 先 `ffmpeg -version`，再确认视频/音频源可直取 |
+| 视觉分析 401/超时 | Key 未设置或额度用尽 | 重设 SILICONFLOW_API_KEY |
+| 渲染出的 mp4 是黑屏 | 场景缺少相机/灯光，或特效未被驱动 | 用 build_showcase.py 自动补相机与灯光并驱动播放 |
+
+### 跑起来
+
+```bash
+python run_course.py <课程链接>   # 或 python echonotes_practice/ 下对应脚本
+```
+
 ## 方法论：闭卷盲写 → 对账 → 校准（三段式）
 
 ![管线三流程](docs/flow-pipeline3.svg)
