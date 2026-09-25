@@ -49,3 +49,7 @@
 中间产物校验通过后自动清扫（详见 [归档清扫流程图](docs/flow-archive.svg)）。
 
 ![归档清扫](docs/flow-archive.svg)
+
+## API 配置
+
+本仓库用到哪些 Key、为什么选这些模型、在哪申请、怎么自检——见 [docs/API_SETUP.md](docs/API_SETUP.md)。密钥永不入库。
